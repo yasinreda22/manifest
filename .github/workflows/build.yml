@@ -1,0 +1,32 @@
+name: Build OpenHarmony
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install deps
+        run: |
+          sudo apt update
+          sudo apt install -y python3-pip git curl wget
+          pip3 install requests
+
+      - name: Download OHOS source
+        run: |
+          mkdir ohos && cd ohos
+          repo init -u https://gitee.com/openharmony/manifest -b master --no-repo-verify
+          repo sync -c -j4 --no-clone-bundle
+
+      - name: Build OHOS
+        run: |
+          cd ohos
+          ./build.sh --product-name rk3568 --ccache
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ohos-rk3568
+          path: ohos/out/rk3568/*.img
